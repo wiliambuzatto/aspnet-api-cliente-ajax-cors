@@ -1,0 +1,95 @@
+<!doctype>
+<html>	
+	<head>
+		<meta charset="utf-8">
+		<title>Cliente API</title>	
+
+		<script src="jquery-2.2.1.min.js"></script>
+	</head>
+	
+	<body>
+		<input type="text" name="username" id="username" /><br/>
+		<input type="text" name="password" id="password" /><br/>
+		
+		<button id="auth-button">Logar</button>
+		<button id="request-button">Requisição</button>
+
+		<div id="result-area">
+			
+		</div>
+
+
+		<script>
+			$(document).ready(function() {
+
+				// Limpa o token toda a vez que aplicação é carregada
+				localStorage.setItem('tokenCliente', '');
+			
+
+				$('#auth-button').on('click', function(){
+					var data = {
+						grant_type: 'password',
+						username: $('#username').val(),
+						password: $('#password').val()
+					}
+
+					console.log(data);
+
+					$.ajax({
+						url: 'http://localhost:64389/api/security/token',
+						type: 'post',
+						contentType: 'x-www-form-urlencoded',
+						data: data
+					})
+					.done(function(data) {
+						console.log(data);
+						$('#result-area').append("<p>" + data.access_token + "<p>");
+						localStorage.setItem('tokenCliente', data.access_token);
+					})
+					.error(function(data) {
+						$('#result-area').append("<p>Usuário ou senha inválido<p>");
+					})
+
+					.fail(function(data) {
+						console.log("error");
+					})
+					.always(function() {
+						console.log("complete");
+					});
+					
+				});
+
+
+				$('#request-button').on('click', function(){
+
+					var token = localStorage.getItem('tokenCliente');
+
+					$.ajax({
+						url: 'http://localhost:64389/api/values',
+						type: 'GET',
+						contentType: 'application/json',
+						headers: {
+							"Authorization": "Bearer " + token
+
+						}
+						/*dataType: 'default: Intelligent Guess (Other values: xml, json, script, or html)',
+						data: {param1: 'value1'},*/
+					})
+					.done(function(data) {
+						console.log("success");
+						$('#result-area').append("<p>" + data + "<p>");
+					})
+					.fail(function() {
+						console.log("error");
+						$('#result-area').append("<p>Sem autorização<p>");
+					})
+					.always(function() {
+						console.log("complete");
+					});
+					
+				});
+
+			});
+		</script>
+	</body>
+</html>
